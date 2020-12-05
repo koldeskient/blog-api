@@ -3,10 +3,21 @@ const { MongoClient } = require("mongodb");
 const login = "root";
 const password = "password";
 const uri = "mongodb://" + login + ":" + password + "@localhost:27017";
-const client = new MongoClient(uri, {
+const mongoOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true
-  });
+}
+let client;
+let articlesCollection;
+MongoClient.connect(uri, mongoOptions, (error, mongoClient) => {
+    if(error) {
+        return console.error("Failed to connect to the database \u{1F6A7} : " + error);
+    }
+    client = mongoClient;
+    const database = client.db("blog");
+    articlesCollection = database.collection("articles");
+    console.info("Connected to the database \u{1F50C}")
+});
 
 function createUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -16,61 +27,87 @@ function createUUID() {
 }
 
 const getArticles = async () => {
-    await client.connect();
-    const database = client.db("blog");
-    const collection = database.collection("articles");
-    const result = await collection.find({}).toArray();
-    if(result) {
-        console.log("Found " + result.length + " articles \u{1F4F0}");
-    } else {
-        console.warn("Could not find any articles \u{1F43E}");
+    try {
+        const result = await articlesCollection.find({}).toArray();
+        if(result) {
+            console.log("   Found " + result.length + " articles \u{1F4F0}");
+        } else {
+            console.warn("  Could not find any articles \u{1F43E}");
+        }
+        return result || "Could not find any articles \u{1F43E}"; 
+    } catch(error) {
+        throw new Error(error);
     }
-    return result || "Could not find any articles \u{1F43E}"; 
 }
 
 const getArticle = async (uuid) => {
-    await client.connect();
-    const database = client.db("blog");
-    const collection = database.collection("articles");
-    const result = await collection.findOne({"uuid":uuid});
-    if(result) {
-        console.log("Found an article whith the uuid : " + uuid + " \u{1F4F0}");
-    } else {
-        console.warn("Could not find any articles \u{1F43E}");
+    try {
+        const result = await articlesCollection.findOne({"uuid":uuid});
+        if(result) {
+            console.log("   Found an article whith the uuid : " + uuid + " \u{1F5DE}");
+        } else {
+            console.warn("  Could not find any articles \u{1F43E}");
+        }
+        return result || "Could not find any articles \u{1F43E}"; 
+    } catch(error) {
+        throw new Error(error);
     }
-    return result || "Could not find any articles \u{1F43E}"; 
 }
 
 const createArticle  = async (article) => {
     article.uuid = createUUID();
-    let result = {};
     try {
-        await client.connect();
-        const database = client.db("blog");
-        const collection = database.collection("articles");
-        result = await collection.insertOne(article);
-    } finally {
-        await client.close();
+        const result = await articlesCollection.insertOne(article);
         if(result) {
-            console.log("Created the article with the UUID : " + article.uuid + "\u{1F5DE}");
+            console.log("   Created the article with the UUID : " + article.uuid + "\u{1F5DE}");
         } else {
-            console.warn("Could not create the article with the UUID : " + article.uuid + "\u{1F43E}");
-        }
+            console.warn("  Could not create the article with the UUID : " + article.uuid + "\u{1F43E}");
+        }    
         return result.ops || "Could not create the article with the UUID : " + article.uuid + "\u{1F43E}";
+    } catch(error) {
+        throw new Error(error);
+    }
+}
+
+const updateArticle = async (uuid, article) => {
+    try {
+        const result = await articlesCollection.updateOne({"uuid": uuid}, {"$set": article});
+        if(result) {
+            console.log("   Updated the article with the UUID : " + uuid + " \u{1F5DE}");
+        } else {
+            console.warn("  Could not update the article with the UUID : " + uuid + " \u{1F43E}");
+        }
+        return result.result || "Could not update the article with the UUID : " + uuid + " \u{1F43E}";
+    } catch(error) {
+        throw new Error(error);
     }
 }
 
 const deleteArticle = async (uuid) => {
-    await client.connect();
-    const database = client.db("blog");
-    const collection = database.collection("articles");
-    const result = await collection.deleteOne({"uuid":uuid});
-    if(result) {
-        console.log("Deleted an article whith the uuid : " + uuid + " \u{1F4F0}");
-    } else {
-        console.warn("Could not find any articles \u{1F43E}");
+    try {
+        const result = await articlesCollection.deleteOne({"uuid":uuid});
+        if(result) {
+            console.log("   Deleted an article whith the uuid : " + uuid + " \u{1F5D1}");
+        } else {
+            console.warn("  Could not find any articles \u{1F43E}");
+        }
+        return result || "  Could not find any articles \u{1F43E}"; 
+    } catch(error) {
+        throw new Error(error);
     }
-    return result || "Could not find any articles \u{1F43E}"; 
 }
 
-module.exports =  { getArticles, getArticle, createArticle, deleteArticle };
+function handleExit(options) {
+    if (options.cleanup) {
+        client.close().then(console.info("Database connection closed \u{1F50C}"));
+    };
+    if (options.exit) process.exit();
+}
+
+// clear all the resources before exiting
+process.on('exit', handleExit.bind(null, {cleanup:true}));
+process.on('SIGINT', handleExit.bind(null, {exit:true}));
+process.on('SIGUSR1', handleExit.bind(null, {exit:true}));
+process.on('SIGUSR2', handleExit.bind(null, {exit:true}));
+
+module.exports =  { getArticles, getArticle, createArticle, updateArticle, deleteArticle };
