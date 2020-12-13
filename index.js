@@ -11,4 +11,5 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-app = require('./endpoints/articles')(app);
+app = require('./endpoints')(app, "articles");
+app = require('./endpoints')(app, "resumes");

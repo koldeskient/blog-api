@@ -1,73 +1,72 @@
-const { getArticleCollection } = require('../database/commons');
+const { getQueries } = require('./database/connection');
 
-module.exports = (app) => {
+const addEnpoints = (app, type) => {
+    app.get("/"+ type, async (req, res) => {
+        console.info("GET /"+type+" --> \u{1F4E8}");
+        try {
+            const result = await getQueries()[type].getAll();
+            res.json(result);
+        } catch(error) {
+            const message = handleError(error);
+            res.status(503);
+            res.json(message);
+        }
+        console.info("GET /"+type+" "+ res.statusCode +" <-- \u{1F4E6}");
+    });
+    app.get("/"+type+"/:uuid", async (req, res) => {
+        const uuid = req.params.uuid;
+        console.info("GET /"+type+"/"+ uuid +" \u{1F4E8}");
+        try {
+            const result = await getQueries()[type].getOne(uuid);
+            res.json(result);
+        } catch(error) {
+            const message = handleError(error);
+            res.status(503);
+            res.json(message);
+        }
+        console.info("GET /"+type+"/"+ uuid +" "+ res.statusCode +" \u{1F4E6}");
+    });
+    app.post("/"+type+"", async (req, res) => {
+        console.info("POST /"+type+" \u{1F4E8}");
+        try {
+            const article = req.body;
+            const result = await getQueries()[type].createOne(article);
+            res.json(result);
+        } catch(error) {
+            const message = handleError(error);
+            res.status(503);
+            res.json(message);
+        }
+        console.info("POST /"+type+"s "+ res.statusCode +" \u{1F4E6}");
+    });
+    app.put("/"+type+"/:uuid", async (req, res) => {
+        const uuid = req.params.uuid;
+        console.info("PUT /"+type+""+ uuid +" \u{1F4E8}");
+        try {
+            const article = req.body;
+            const result = await getQueries()[type].updateOne(uuid, article);
+            res.json(result);
+        } catch(error) {
+            const message = handleError(error);
+            res.status(503);
+            res.json(message);
+        }
+        console.info("PUT /"+type+"/"+ uuid +" \u{1F4E6}");
+    });
+    app.delete("/"+type+"/:uuid", async (req, res) => {
+        const uuid = req.params.uuid;
+        console.info("DELETE /"+type+"/"+ uuid +" \u{1F4E8}");
+        try {
+            const result = await getQueries()[type].deleteOne(uuid);
+            res.json(result);
+        } catch(error) {
+            const message = handleError(error);
+            res.status(503);
+            res.json(message);
+        }
+        console.info("DELETE /"+type+"/"+ uuid +" "+ res.statusCode +" \u{1F4E6}");
+    });
     
-    app.get("/articles", async (req, res) => {
-        console.info("GET /articles --> \u{1F4E8}");
-        try {
-            const result = await getArticleCollection().getArticles();
-            res.json(result);
-        } catch(error) {
-            const message = handleError(error);
-            res.status(503);
-            res.json(message);
-        }
-        console.info("GET /articles "+ res.statusCode +" <-- \u{1F4E6}");
-    });
-    app.get("/articles/:uuid", async (req, res) => {
-        const uuid = req.params.uuid;
-        console.info("GET /articles/"+ uuid +" \u{1F4E8}");
-        try {
-            const result = await getArticleCollection().getArticle(uuid);
-            res.json(result);
-        } catch(error) {
-            const message = handleError(error);
-            res.status(503);
-            res.json(message);
-        }
-        console.info("GET /articles/"+ uuid +" "+ res.statusCode +" \u{1F4E6}");
-    });
-    app.post("/articles", async (req, res) => {
-        console.info("POST /articles \u{1F4E8}");
-        try {
-            const article = req.body;
-            const result = await getArticleCollection().createArticle(article);
-            res.json(result);
-        } catch(error) {
-            const message = handleError(error);
-            res.status(503);
-            res.json(message);
-        }
-        console.info("POST /articles "+ res.statusCode +" \u{1F4E6}");
-    });
-    app.put("/articles/:uuid", async (req, res) => {
-        const uuid = req.params.uuid;
-        console.info("PUT /articles"+ uuid +" \u{1F4E8}");
-        try {
-            const article = req.body;
-            const result = await getArticleCollection().updateArticle(uuid, article);
-            res.json(result);
-        } catch(error) {
-            const message = handleError(error);
-            res.status(503);
-            res.json(message);
-        }
-        console.info("PUT /articles/"+ uuid +" \u{1F4E6}");
-    });
-    app.delete("/articles/:uuid", async (req, res) => {
-        const uuid = req.params.uuid;
-        console.info("DELETE /articles/"+ uuid +" \u{1F4E8}");
-        try {
-            const result = await getArticleCollection().deleteArticle(uuid);
-            res.json(result);
-        } catch(error) {
-            const message = handleError(error);
-            res.status(503);
-            res.json(message);
-        }
-        console.info("DELETE /articles/"+ uuid +" "+ res.statusCode +" \u{1F4E6}");
-    });
-
     function handleError(error) {
         let message = {
             code: 1,
@@ -94,4 +93,8 @@ module.exports = (app) => {
         }
         return message;
     }
-}
+
+    return app;
+};
+
+module.exports = addEnpoints;

@@ -1,5 +1,5 @@
 const { MongoClient } = require("mongodb");
-const { articleCollection } = require("./articles.js");
+const { queries } = require("./queries.js");
 
 const login = "root"; 
 const password = "password";
@@ -18,12 +18,13 @@ MongoClient.connect(uri, mongoOptions, (error, mc) => {
     }
     mongoClient = mc;
     const db = mongoClient.db("blog");
-    database.articles = articleCollection(db);
+    database.articles = queries(db, "articles", "\u{1F5DE}");
+    database.resume = queries(db, "resumes", "\u{1F3C6}");
     console.info("Connected to the database \u{1F50C}"); 
 });
 
-const getArticleCollection = () => {
-    return database.articles;
+const getQueries = () => {
+    return database;
 }
 
 function handleExit(options) {
@@ -39,4 +40,4 @@ process.on('SIGINT', handleExit.bind(null, {exit:true}));
 process.on('SIGUSR1', handleExit.bind(null, {exit:true}));
 process.on('SIGUSR2', handleExit.bind(null, {exit:true}));
 
-module.exports =  { getArticleCollection };
+module.exports =  { getQueries };
