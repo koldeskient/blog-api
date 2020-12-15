@@ -29,8 +29,8 @@ const addEnpoints = (app, type) => {
     app.post("/"+type+"", async (req, res) => {
         console.info("POST /"+type+" \u{1F4E8}");
         try {
-            const article = req.body;
-            const result = await getQueries()[type].createOne(article);
+            const entity = req.body;
+            const result = await getQueries()[type].createOne(entity);
             res.json(result);
         } catch(error) {
             const message = handleError(error);
@@ -43,8 +43,8 @@ const addEnpoints = (app, type) => {
         const uuid = req.params.uuid;
         console.info("PUT /"+type+""+ uuid +" \u{1F4E8}");
         try {
-            const article = req.body;
-            const result = await getQueries()[type].updateOne(uuid, article);
+            const entity = req.body;
+            const result = await getQueries()[type].updateOne(uuid, entity);
             res.json(result);
         } catch(error) {
             const message = handleError(error);

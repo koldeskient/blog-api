@@ -29,24 +29,24 @@ const queries = (database, type, emoji) => {
         }
     }
     
-    const createOne  = async (article) => {
-        article.uuid = generateUUID();
+    const createOne  = async (entity) => {
+        entity.uuid = generateUUID();
         try {
-            const result = await collection.insertOne(article);
+            const result = await collection.insertOne(entity);
             if(result) {
-                console.log("   Created the " + singular(type) + " with the UUID : " + article.uuid + " " + emoji);
+                console.log("   Created the " + singular(type) + " with the UUID : " + entity.uuid + " " + emoji);
             } else {
-                console.warn("  Could not create the " + singular(type) + " with the UUID : " + article.uuid + " \u{1F43E}");
+                console.warn("  Could not create the " + singular(type) + " with the UUID : " + entity.uuid + " \u{1F43E}");
             }    
-            return result.ops || "Could not create the " + singular(type) + " with the UUID : " + article.uuid + " \u{1F43E}";
+            return result.ops || "Could not create the " + singular(type) + " with the UUID : " + entity.uuid + " \u{1F43E}";
         } catch(error) {
             throw new Error(error);
         }
     }
     
-    const updateOne = async (uuid, article) => {
+    const updateOne = async (uuid, entity) => {
         try {
-            const result = await collection.updateOne({"uuid": uuid}, {"$set": article});
+            const result = await collection.updateOne({"uuid": uuid}, {"$set": entity});
             if(result) {
                 console.log("   Updated the " + singular(type) + " with the UUID : " + uuid + " " + emoji);
             } else {

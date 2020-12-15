@@ -19,7 +19,7 @@ MongoClient.connect(uri, mongoOptions, (error, mc) => {
     mongoClient = mc;
     const db = mongoClient.db("blog");
     database.articles = queries(db, "articles", "\u{1F5DE}");
-    database.resume = queries(db, "resumes", "\u{1F3C6}");
+    database.resumes = queries(db, "resumes", "\u{1F3C6}");
     console.info("Connected to the database \u{1F50C}"); 
 });
 
